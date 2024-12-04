@@ -14,7 +14,7 @@ from qiskit_ibm_runtime import SamplerV2
 from qiskit import qasm3
 import dimod
 
-from qaoa_pipeline.circuit.qaoa_generator import QAOACircuit
+from qaoa_pipeline.circuit.qaoa_circuit import QAOACircuit
 from qaoa_pipeline.utils.layout import QubitLayout
 from qaoa_pipeline.circuit.qaoa_parameters import QaoaParameters
 
@@ -83,16 +83,7 @@ class QiskitCircuit(QAOACircuit):
             mapping
         )
 
-    def _get_sampleset(self, qaoa_parameters: QaoaParameters):
-        qc = self.get_circuit(qaoa_parameters)
-
-        if self._sampler is None:
-            sv = Statevector(qc)
-            counts = sv.probabilities_dict(list(range(len(qc.qregs[0]))), decimals=14)
-        else:
-            result = self._sampler.run([qc]).result()
-            counts = result[0].data.res.get_counts()
-
+    def sampleset_from_counts(self, counts: dict):
         num_occ = list(counts.values())
         samples = [
             {v: int(i) for v, i in zip(self.layout.variables, reversed(k))}
@@ -127,6 +118,17 @@ class QiskitCircuit(QAOACircuit):
             sampleset.record.energy += penalties
 
         return sampleset
+
+    def _get_sampleset(self, qaoa_parameters: QaoaParameters):
+        qc = self.get_circuit(qaoa_parameters)
+
+        if self._sampler is None:
+            sv = Statevector(qc)
+            counts = sv.probabilities_dict(list(range(len(qc.qregs[0]))), decimals=14)
+        else:
+            result = self._sampler.run([qc]).result()
+            counts = result[0].data.res.get_counts()
+        return self.sampleset_from_counts(counts)
 
     def expectation_value(self, qaoa_parameters: QaoaParameters):
         sampleset = self._get_sampleset(qaoa_parameters)
@@ -183,8 +185,10 @@ class QiskitCircuit(QAOACircuit):
 
     @classmethod
     def load(
-        self, input: dict, basemodel: dimod.ConstrainedQuadraticModel | None = None,
-        backend: BackendV2 | None = None
+        self,
+        input: dict,
+        basemodel: dimod.ConstrainedQuadraticModel | None = None,
+        backend: BackendV2 | None = None,
     ) -> QiskitCircuit:
         init_circuit = qasm3.loads(input["init_circuit"])
         layer_circuit = qasm3.loads(input["layer_circuit"])
@@ -200,5 +204,5 @@ class QiskitCircuit(QAOACircuit):
             penalties=penalties,
             constr_idxs=constr_idxs,
             basemodel=basemodel,
-            backend=backend
+            backend=backend,
         )

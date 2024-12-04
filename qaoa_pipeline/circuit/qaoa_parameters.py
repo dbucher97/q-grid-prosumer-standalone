@@ -47,6 +47,19 @@ class QaoaParameters:
         )
 
     @classmethod
+    def from_deltas_sin2(cls, num_layers: int, delta_beta: float, delta_gamma: float):
+        betas, _ = deltas_to_params(num_layers=num_layers, delta_beta=1, delta_gamma=1)
+        betas = np.sin(np.pi / 2 * np.sin(np.pi / 2 * betas) ** 2) ** 2
+        gammas = 1 - betas
+
+        return cls(
+            num_layers=num_layers,
+            deltas=(delta_beta, delta_gamma),
+            betas=delta_beta * betas,
+            gammas=delta_gamma * gammas,
+        )
+
+    @classmethod
     def from_beta_gamma(cls, betas, gammas):
         return cls(num_layers=len(betas), deltas=None, betas=betas, gammas=gammas)
 
