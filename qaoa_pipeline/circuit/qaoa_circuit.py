@@ -8,6 +8,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 class QAOACircuit(ABC):
     def __init__(self, layout: QubitLayout):
         self.layout = layout

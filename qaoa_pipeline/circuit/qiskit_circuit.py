@@ -14,7 +14,7 @@ from qiskit_ibm_runtime import SamplerV2
 from qiskit import qasm3
 import dimod
 
-from qaoa_pipeline.circuit.qaoa_circuit import QAOACircuit
+from qaoa_pipeline.circuit.qaoa_generator import QAOACircuit
 from qaoa_pipeline.utils.layout import QubitLayout
 from qaoa_pipeline.circuit.qaoa_parameters import QaoaParameters
 
@@ -174,14 +174,18 @@ class QiskitCircuit(QAOACircuit):
         )
 
     def store(self) -> dict:
-        return {
+        storage_dict = {
             "layout": asdict(self.layout),
             "init_circuit": qasm3.dumps(self.init_circuit),
             "layer_circuit": qasm3.dumps(self.layer_circuit),
             "objective": self._objective.to_serializable(),
-            "penalties": list(self._penalties),
-            "constr_idxs": list(self._constr_idxs),
+            "penalties": list(self._penalties) if self._penalties is not None else None,
+            "constr_idxs": list(self._constr_idxs)
+            if self._constr_idxs is not None
+            else None,
         }
+
+        return storage_dict
 
     @classmethod
     def load(

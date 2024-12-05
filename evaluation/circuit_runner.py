@@ -1,15 +1,14 @@
 from copy import deepcopy
 import pickle
 import time
-from uuid import UUID, uuid4
-from qiskit.primitives.containers import PrimitiveResult
+from uuid import UUID
 from tqdm.auto import tqdm
 import numpy as np
 from sqlitedict import SqliteDict
 
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2, Session
 from qiskit import generate_preset_pass_manager
-from evaluation.circuit_storage import CircuitStorage, SingleCircuit
+from evaluation.circuit_storage import CircuitStorage
 from evaluation.metrics import EvaluationMetrics
 from qaoa_pipeline.circuit.qaoa_parameters import QaoaParameters
 
